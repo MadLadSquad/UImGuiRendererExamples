@@ -1,11 +1,17 @@
-# UImGuiBgfx
+# UImGuiRendererExamples
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![trello](https://img.shields.io/badge/Trello-UDE-blue])](https://trello.com/b/HmfuRY2K/untitleddesktop)
 [![Discord](https://img.shields.io/discord/717037253292982315.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/4wgH8ZE)
 
-A [bgfx](https://github.com/bkaradzic/bgfx) custom renderer example in the [UntitledImGuiFramework](https://github.com/MadLadSquad/UntitledImGuiFramework).
+A number of example custom renderer implementations for the [UntitledImGuiFramework](https://github.com/MadLadSquad/UntitledImGuiFramework). You can use this library to test the
+custom renderer support. More information can be found on the [wiki](https://github.com/MadLadSquad/UImGuiRendererExamples/wiki/).
 
-This library is used for testing custom renderer functionality in the framework and testing of the DirectX and Metal custom renderer backend support.
-Our tests can be simulated by cloning this library inside the `Source/` folder of [UImGuiDemo](https://github.com/MadLadSquad/UImGuiDemo) and trying to
-compile the project. For runtime testing, refer to the [custom renderer documenation](https://github.com/MadLadSquad/UntitledImGuiFramework/wiki/Introduction-to-custom-renderers) to learn how to register a custom renderer in your project.
+Renderers:
+
+1. Basic Metal renderer(based on the dear imgui example Metal renderer)
+1. Basic DirectX 11 and 12 renderers(based on the dear imgui example DirectX 11/12 renderers)
+1. A [bgfx](https://github.com/bkaradzic/bgfx) renderer
+
+## Learning
+All information can be found on the [wiki](https://github.com/MadLadSquad/UImGuiRendererExamples/wiki/).
