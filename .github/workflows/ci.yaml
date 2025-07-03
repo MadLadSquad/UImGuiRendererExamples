@@ -58,6 +58,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
           cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
@@ -117,6 +118,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
           cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
@@ -176,6 +178,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
           cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
@@ -237,6 +240,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
           emcmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
