@@ -269,5 +269,5 @@ jobs:
           cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
-          emcmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
+          emcmake cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
           make -j "$(grep -c processor /proc/cpuinfo 2> /dev/null)"
