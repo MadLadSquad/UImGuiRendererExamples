@@ -201,8 +201,8 @@ jobs:
           cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
-          cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
-          make -j "$(grep -c processor /proc/cpuinfo 2> /dev/null)"
+          cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+          MSBuild.exe UImGuiDemo.sln -property:Configuration=Release -property:Platform=x64 -property:maxCpuCount="$(grep -c processor /proc/cpuinfo 2> /dev/null)" || exit
   WASM:
     runs-on: ubuntu-latest
     steps:
