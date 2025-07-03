@@ -27,6 +27,7 @@ jobs:
           ./install.sh ci
           cd Projects || exit
           git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          cd ../UVKBuildTool/build || exit
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
@@ -86,6 +87,7 @@ jobs:
           ./install.sh ci
           cd Projects || exit
           git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          cd ../UVKBuildTool/build || exit
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
@@ -144,6 +146,7 @@ jobs:
           ./install.sh ci
           cd Projects || exit
           git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          cd ../UVKBuildTool/build || exit
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
@@ -204,6 +207,7 @@ jobs:
           ./install.sh ci
           cd Projects || exit
           git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          cd ../UVKBuildTool/build || exit
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
