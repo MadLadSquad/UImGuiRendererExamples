@@ -31,8 +31,7 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "" "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
-
+          sed -i "" 's/option(BGFX_CONFIG_MULTITHREADED.*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           echo "\
           function(custom_setup_step)
             add_subdirectory(bgfx.cmake/)
@@ -91,8 +90,7 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
-
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED.*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           echo "\
           function(custom_setup_step)
             add_subdirectory(bgfx.cmake/)
@@ -150,7 +148,7 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED.*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
 
           echo "\
           function(custom_setup_step)
@@ -211,7 +209,7 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED.*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
 
           echo "\
           function(custom_setup_step)
