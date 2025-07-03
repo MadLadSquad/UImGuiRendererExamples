@@ -3,7 +3,18 @@
 #include "bgfx/bgfx.h"
 
 #ifndef __EMSCRIPTEN__
-#define GLFW_EXPOSE_NATIVE_COCOA
+#ifdef __APPLE__
+    #define GLFW_EXPOSE_NATIVE_COCOA
+#elifdef _WIN32
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#else
+    #if __has_include(<wayland-client.h>)
+        #define GLFW_EXPOSE_NATIVE_WAYLAND
+    #endif
+    #if __has_include(<X11/Xatom.h>)
+        #define GLFW_EXPOSE_NATIVE_X11
+    #endif
+#endif
 #include <GLFW/glfw3native.h>
 #endif
 
@@ -11,9 +22,9 @@ static void* glfwNativeWindowHandle(GLFWwindow* _window)
 {
 #ifdef __APPLE__
     return glfwGetCocoaWindow(_window);
-#elif _WIN32
+#elifdef _WIN32
     return glfwGetWin32Window(_window);
-#elif __EMSCRIPTEN__
+#elifdef __EMSCRIPTEN__
     return (void*)"#canvas";
 #else
     if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND)
