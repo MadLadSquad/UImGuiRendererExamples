@@ -1,5 +1,5 @@
 #include "metal.hpp"
-
+#ifndef __EMSCRIPTEN__
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_metal.h>
@@ -101,7 +101,7 @@ void UImGuiRendererExamples::MetalRenderer::ImGuiShutdown() noexcept
 
 void UImGuiRendererExamples::MetalRenderer::ImGuiInit() noexcept
 {
-    ImGui_ImplGlfw_InitForOpenGL(UImGui::Window::getInternal(), true);
+    ImGui_ImplGlfw_InitForOther(UImGui::Window::getInternal(), true);
     ImGui_ImplMetal_Init(DATA->device);
 
     NSWindow *nswin = glfwGetCocoaWindow(UImGui::Window::getInternal());
@@ -123,3 +123,4 @@ void UImGuiRendererExamples::MetalRenderer::waitOnGPU() noexcept
 {
 
 }
+#endif
