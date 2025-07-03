@@ -1,0 +1,241 @@
+name: CI
+env:
+  BUILD_CONFIGURATION: Release
+on: [ push, pull_request ]
+jobs:
+  macOS:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Get dependencies
+        run: |
+          brew install glfw yaml-cpp vulkan-headers vulkan-loader vulkan-tools vulkan-utility-libraries vulkan-validationlayers vulkan-extensionlayer
+      - name: Install framework
+        shell: bash
+        run: |
+          git clone https://github.com/MadLadSquad/UntitledImGuiFramework --recursive
+          cd UntitledImGuiFramework || exit
+          ./install.sh ci
+          cd Projects || exit
+          git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
+          cd ../../Projects/UImGuiDemo || exit
+          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
+          sed -i "" "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+
+          echo "\
+          function(custom_setup_step)
+            add_subdirectory(bgfx.cmake/)
+          endfunction()
+
+          function(custom_compile_step)
+            if (EMSCRIPTEN)
+              target_link_libraries(UImGuiDemo bgfx)
+            else ()
+              target_link_libraries(UImGuiDemoLib bgfx)
+            endif ()
+            include_directories(bgfx.cmake/bgfx/include bgfx.cmake/bx/include bgfx.cmake/bimg/include)
+          endfunction()
+
+          set(ENABLE_PRE_SCRIPT ON)
+          set(ENABLE_POST_SCRIPT ON)
+          set(IMGUI_BUILD_WITH_METAL ON)
+          set(IMGUI_BUILD_WITH_DX12 ON)
+          set(IMGUI_BUILD_WITH_DX11 ON)" > Config/cmake/UImGuiDemo.cmake
+          
+          cd Source/
+          git clone https://github.com/MadLadSquad/UImGuiRendererExamples --recursive
+          cd ../
+      - name: Build
+        shell: bash
+        run: |
+          mkdir build
+          cd build || exit
+          cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
+          make -j "$(sysctl -n hw.ncpu)"
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Get dependencies
+        run: | 
+          sudo apt update && sudo apt-get install x11-xserver-utils libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev gcc make g++ libxmu-dev libxi-dev libgl-dev libglu1-mesa-dev libvulkan1 mesa-vulkan-drivers vulkan-tools libvulkan-dev libasound2-dev libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libsndfile1-dev libssl-dev zlib1g zlib1g-dev libglfw3 libglfw3-dev libyaml-cpp-dev libxkbcommon-dev
+      - name: Install framework
+        shell: bash
+        run: |
+          git clone https://github.com/MadLadSquad/UntitledImGuiFramework --recursive
+          cd UntitledImGuiFramework || exit
+          ./install.sh ci
+          cd Projects || exit
+          git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
+          cd ../../Projects/UImGuiDemo || exit
+          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
+          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+
+          echo "\
+          function(custom_setup_step)
+            add_subdirectory(bgfx.cmake/)
+          endfunction()
+
+          function(custom_compile_step)
+            if (EMSCRIPTEN)
+              target_link_libraries(UImGuiDemo bgfx)
+            else ()
+              target_link_libraries(UImGuiDemoLib bgfx)
+            endif ()
+            include_directories(bgfx.cmake/bgfx/include bgfx.cmake/bx/include bgfx.cmake/bimg/include)
+          endfunction()
+
+          set(ENABLE_PRE_SCRIPT ON)
+          set(ENABLE_POST_SCRIPT ON)
+          set(IMGUI_BUILD_WITH_METAL ON)
+          set(IMGUI_BUILD_WITH_DX12 ON)
+          set(IMGUI_BUILD_WITH_DX11 ON)" > Config/cmake/UImGuiDemo.cmake
+          
+          cd Source/
+          git clone https://github.com/MadLadSquad/UImGuiRendererExamples --recursive
+          cd ../
+      - name: Build
+        shell: bash
+        run: |
+          mkdir build
+          cd build || exit
+          cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
+          make -j "$(grep -c processor /proc/cpuinfo 2> /dev/null)"
+  Windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set MSBuild env
+        uses: microsoft/setup-msbuild@main
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Install framework
+        shell: bash
+        run: |
+          git clone https://github.com/MadLadSquad/UntitledImGuiFramework --recursive
+          cd UntitledImGuiFramework || exit
+          ./install.sh ci
+          cd Projects || exit
+          git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
+          cd ../../Projects/UImGuiDemo || exit
+          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
+          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+
+          echo "\
+          function(custom_setup_step)
+            add_subdirectory(bgfx.cmake/)
+          endfunction()
+
+          function(custom_compile_step)
+            if (EMSCRIPTEN)
+              target_link_libraries(UImGuiDemo bgfx)
+            else ()
+              target_link_libraries(UImGuiDemoLib bgfx)
+            endif ()
+            include_directories(bgfx.cmake/bgfx/include bgfx.cmake/bx/include bgfx.cmake/bimg/include)
+          endfunction()
+
+          set(ENABLE_PRE_SCRIPT ON)
+          set(ENABLE_POST_SCRIPT ON)
+          set(IMGUI_BUILD_WITH_METAL ON)
+          set(IMGUI_BUILD_WITH_DX12 ON)
+          set(IMGUI_BUILD_WITH_DX11 ON)" > Config/cmake/UImGuiDemo.cmake
+          
+          cd Source/
+          git clone https://github.com/MadLadSquad/UImGuiRendererExamples --recursive
+          cd ../
+      - name: Build
+        shell: bash
+        run: |
+          mkdir build
+          cd build || exit
+          cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
+          make -j "$(grep -c processor /proc/cpuinfo 2> /dev/null)"
+  WASM:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Get dependencies
+        run: | 
+          sudo apt update && sudo apt-get install x11-xserver-utils libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev gcc make g++ libxmu-dev libxi-dev libgl-dev libglu1-mesa-dev libvulkan1 mesa-vulkan-drivers vulkan-tools libvulkan-dev libasound2-dev libflac-dev libogg-dev libtool libvorbis-dev libopus-dev libsndfile1-dev libssl-dev zlib1g zlib1g-dev libglfw3 libglfw3-dev libyaml-cpp-dev libxkbcommon-dev
+      - uses: mymindstorm/setup-emsdk@v14
+      - name: Install framework
+        shell: bash
+        run: |
+          git clone https://github.com/MadLadSquad/UntitledImGuiFramework --recursive
+          cd UntitledImGuiFramework || exit
+          ./install.sh ci
+          cd Projects || exit
+          git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
+          ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
+          cd ../../Projects/UImGuiDemo || exit
+          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
+          sed -i "s/option\(BGFX_CONFIG_MULTITHREADED.*/option\(BGFX_CONFIG_MULTITHREADED \"\" OFF\)/g" bgfx.cmake/CMakeLists.txt
+
+          echo "\
+          function(custom_setup_step)
+            add_subdirectory(bgfx.cmake/)
+          endfunction()
+
+          function(custom_compile_step)
+            if (EMSCRIPTEN)
+              target_link_libraries(UImGuiDemo bgfx)
+            else ()
+              target_link_libraries(UImGuiDemoLib bgfx)
+            endif ()
+            include_directories(bgfx.cmake/bgfx/include bgfx.cmake/bx/include bgfx.cmake/bimg/include)
+          endfunction()
+
+          set(ENABLE_PRE_SCRIPT ON)
+          set(ENABLE_POST_SCRIPT ON)
+          set(IMGUI_BUILD_WITH_METAL ON)
+          set(IMGUI_BUILD_WITH_DX12 ON)
+          set(IMGUI_BUILD_WITH_DX11 ON)" > Config/cmake/UImGuiDemo.cmake
+          
+          cd Source/
+          git clone https://github.com/MadLadSquad/UImGuiRendererExamples --recursive
+          cd ../
+      - name: Build
+        shell: bash
+        run: |
+          mkdir build
+          cd build || exit
+          emcmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
+          make -j "$(grep -c processor /proc/cpuinfo 2> /dev/null)"
