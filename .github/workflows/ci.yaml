@@ -45,6 +45,8 @@ jobs:
           function(custom_compile_step)
             if (EMSCRIPTEN)
               target_link_libraries(UImGuiDemo bgfx)
+            elif (WIN32)
+              target_link_libraries(UntitledImGuiFramework bgfx)
             else ()
               target_link_libraries(UImGuiDemoLib bgfx)
             endif ()
@@ -110,6 +112,8 @@ jobs:
           function(custom_compile_step)
             if (EMSCRIPTEN)
               target_link_libraries(UImGuiDemo bgfx)
+            elif (WIN32)
+              target_link_libraries(UntitledImGuiFramework bgfx)
             else ()
               target_link_libraries(UImGuiDemoLib bgfx)
             endif ()
@@ -174,6 +178,8 @@ jobs:
           function(custom_compile_step)
             if (EMSCRIPTEN)
               target_link_libraries(UImGuiDemo bgfx)
+            elif (WIN32)
+              target_link_libraries(UntitledImGuiFramework bgfx)
             else ()
               target_link_libraries(UImGuiDemoLib bgfx)
             endif ()
@@ -232,8 +238,6 @@ jobs:
           sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED.*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-
           echo "\
           function(custom_setup_step)
             add_subdirectory(bgfx.cmake/)
@@ -242,6 +246,8 @@ jobs:
           function(custom_compile_step)
             if (EMSCRIPTEN)
               target_link_libraries(UImGuiDemo bgfx)
+            elif (WIN32)
+              target_link_libraries(UntitledImGuiFramework bgfx)
             else ()
               target_link_libraries(UImGuiDemoLib bgfx)
             endif ()
