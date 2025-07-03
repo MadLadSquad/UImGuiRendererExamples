@@ -179,6 +179,7 @@ jobs:
             if (EMSCRIPTEN)
               target_link_libraries(UImGuiDemo bgfx)
             elseif (WIN32)
+              target_compile_options(UntitledImGuiFramework PRIVATE "/Zc:preprocessor")
               target_link_libraries(UntitledImGuiFramework bgfx)
             else ()
               target_link_libraries(UImGuiDemoLib bgfx)
