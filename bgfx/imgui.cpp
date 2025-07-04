@@ -22,6 +22,7 @@
 
 // Data
 static uint8_t g_View = 255;
+static uint8_t g_Views = 255;
 static bgfx::ProgramHandle g_ShaderHandle = BGFX_INVALID_HANDLE;
 static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
 static bgfx::VertexLayout g_VertexLayout;
@@ -30,9 +31,8 @@ bool ImGui_Implbgfx_UpdateTexture(ImTextureData* tex);
 
 void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
 {
-    const ImGuiIO& io = ImGui::GetIO();
-    const int fb_width  = static_cast<int>(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    const int fb_height = static_cast<int>(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    const int fb_width  = static_cast<int>(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+    const int fb_height = static_cast<int>(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
 
@@ -115,11 +115,13 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
             const bgfx::TextureHandle th = { static_cast<uint16_t>((static_cast<intptr_t>(pcmd->TexRef.GetTexID()) & 0xffff)) };
             bgfx::setTexture(0, g_AttribLocationTex, th);
 
-            bgfx::setVertexBuffer(0, &tvb, 0, vtx_count);
-            bgfx::setIndexBuffer (&tib, pcmd->IdxOffset, pcmd->ElemCount);
+            bgfx::setVertexBuffer(0, &tvb, pcmd->VtxOffset, vtx_count);
+            bgfx::setIndexBuffer(&tib, pcmd->IdxOffset, pcmd->ElemCount);
             bgfx::submit(g_View, g_ShaderHandle);
         }
     }
+    if (draw_data->CmdListsCount == 0)
+        bgfx::touch(g_View);
 }
 
 static void uploadRect(ImTextureData* texture, const int x, const int y, const int w, const int h)
@@ -208,6 +210,91 @@ static const bgfx::EmbeddedShader s_embeddedShaders[] =
     BGFX_EMBEDDED_SHADER_END()
 };
 
+struct ImGuiBGFXViewportData
+{
+    bgfx::FrameBufferHandle fb = BGFX_INVALID_HANDLE;
+    bgfx::ViewId viewId = 0xff;
+};
+
+static void ImGui_Implbgfx_CreateWindow(ImGuiViewport* viewport) noexcept
+{
+    auto* vd = IM_NEW(ImGuiBGFXViewportData)();
+    vd->viewId = g_Views++;
+    vd->fb  = bgfx::createFrameBuffer(
+        viewport->PlatformHandleRaw,
+        static_cast<uint16_t>(viewport->Size.x * viewport->DrawData->FramebufferScale.x),
+        static_cast<uint16_t>(viewport->Size.y * viewport->DrawData->FramebufferScale.y),
+        bgfx::TextureFormat::RGBA8
+    );
+
+    viewport->RendererUserData = vd;
+}
+
+static void ImGui_Implbgfx_DestroyWindow(ImGuiViewport* viewport) noexcept
+{
+    if (auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData))
+    {
+        if (bgfx::isValid(vd->fb))
+            bgfx::destroy(vd->fb);
+        IM_DELETE(vd);
+    }
+    viewport->RendererUserData = nullptr;
+}
+
+static void ImGui_Implbgfx_RenderWindow(ImGuiViewport* viewport, void* renderArg) noexcept
+{
+    const auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData);
+
+    const bgfx::ViewId viewId = vd ? vd->viewId : 0;
+    const bgfx::FrameBufferHandle fb = vd ? vd->fb : bgfx::FrameBufferHandle(BGFX_INVALID_HANDLE);
+
+    const auto w = static_cast<uint16_t>(viewport->Size.x * viewport->DrawData->FramebufferScale.x);
+    const auto h = static_cast<uint16_t>(viewport->Size.y * viewport->DrawData->FramebufferScale.y);
+
+    bgfx::setViewFrameBuffer(viewId, fb);
+    bgfx::setViewRect(viewId, 0, 0, w, h);
+    bgfx::touch(viewId);
+
+    const bgfx::ViewId prev = g_View;
+    g_View = viewId;
+    ImGui_Implbgfx_RenderDrawLists(viewport->DrawData);
+    g_View = prev;
+}
+
+static void ImGui_Implbgfx_SwapBuffers(ImGuiViewport* viewport, void* renderArg) noexcept
+{
+    (void)viewport;
+    (void)renderArg;
+}
+
+static void ImGui_Implbgfx_SetWindowSize(ImGuiViewport* viewport, const ImVec2 size) noexcept
+{
+    if (auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData))
+    {
+        if (bgfx::isValid(vd->fb))
+            bgfx::destroy(vd->fb);
+
+        vd->fb = bgfx::createFrameBuffer(
+            viewport->PlatformHandleRaw,
+            static_cast<uint16_t>(size.x * viewport->DrawData->FramebufferScale.x),
+            static_cast<uint16_t>(size.y * viewport->DrawData->FramebufferScale.y),
+            bgfx::TextureFormat::RGBA8
+        );
+    }
+    else
+        bgfx::reset(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y), BGFX_RESET_VSYNC);
+}
+
+static void ImGui_Implbgfx_InitMultiViewportSupport() noexcept
+{
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    platform_io.Renderer_CreateWindow = ImGui_Implbgfx_CreateWindow;
+    platform_io.Renderer_DestroyWindow = ImGui_Implbgfx_DestroyWindow;
+    platform_io.Renderer_SetWindowSize = ImGui_Implbgfx_SetWindowSize;
+    platform_io.Renderer_RenderWindow = ImGui_Implbgfx_RenderWindow;
+    platform_io.Renderer_SwapBuffers = ImGui_Implbgfx_SwapBuffers;
+}
+
 bool ImGui_Implbgfx_CreateDeviceObjects()
 {
     const bgfx::RendererType::Enum type = bgfx::getRendererType();
@@ -232,7 +319,11 @@ bool ImGui_Implbgfx_CreateDeviceObjects()
 void ImGui_Implbgfx_InvalidateDeviceObjects()
 {
     for (const auto& a : ImGui::GetPlatformIO().Textures)
-        bgfx::destroy(bgfx::TextureHandle{ .idx = static_cast<unsigned short>(a->GetTexID()) });
+    {
+        const bgfx::TextureHandle handle{ static_cast<uint16_t>(a->GetTexID()) };
+        if (bgfx::isValid(handle))
+            bgfx::destroy(handle);
+    }
     bgfx::destroy(g_AttribLocationTex);
     bgfx::destroy(g_ShaderHandle);
 }
@@ -240,6 +331,7 @@ void ImGui_Implbgfx_InvalidateDeviceObjects()
 void ImGui_Implbgfx_Init(const int view)
 {
     g_View = static_cast<uint8_t>(view & 0xff);
+    g_Views = static_cast<uint8_t>(view & 0xff) + 1;
 
     auto& io = ImGui::GetIO();
     io.BackendRendererName = "imgui_impl_bgfx";
@@ -259,6 +351,7 @@ void ImGui_Implbgfx_NewFrame()
     if (bFirst)
     {
         ImGui_Implbgfx_CreateDeviceObjects();
+        ImGui_Implbgfx_InitMultiViewportSupport();
         bFirst = false;
     }
 }
