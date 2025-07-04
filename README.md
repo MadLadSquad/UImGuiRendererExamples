@@ -14,5 +14,14 @@ Renderers:
 1. Basic DirectX 11 and 12 renderers(based on the dear imgui example DirectX 11/12 renderers)
 1. A [bgfx](https://github.com/bkaradzic/bgfx) renderer
 
+All renderers support the following:
+
+1. Docking and multi-viewports
+1. V-Sync
+1. MSAA
+1. Custom textures with filtering
+1. Framebuffer resizing
+1. The dynamic font API from dear imgui 1.92
+
 ## Learning
 All information can be found on the [wiki](https://github.com/MadLadSquad/UImGuiRendererExamples/wiki/).
