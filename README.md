@@ -11,7 +11,7 @@ custom renderer support. More information can be found on the [wiki](https://git
 Renderers:
 
 1. Basic Metal renderer(based on the dear imgui example Metal renderer)
-1. Basic DirectX 11 and 12 renderers(based on the dear imgui example DirectX 11/12 renderers)
+1. Basic DirectX 12 renderer(based on the dear imgui example DirectX 12 renderer)
 1. A [bgfx](https://github.com/bkaradzic/bgfx) renderer
 
 All renderers support the following:
