@@ -10,6 +10,7 @@ void UImGuiRendererExamples::MetalTexture::load(UImGui::TextureData& dt, void* d
 
 uintptr_t UImGuiRendererExamples::MetalTexture::get(UImGui::TextureData& dt) noexcept
 {
+    return 0;
 }
 
 void UImGuiRendererExamples::MetalTexture::clear(UImGui::TextureData& dt) noexcept
