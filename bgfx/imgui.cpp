@@ -20,17 +20,24 @@
 #include "bx/math.h"
 #include "bx/timer.h"
 
-// Data
-static uint8_t g_View = 255;
-static uint8_t g_Views = 255;
-static bgfx::ProgramHandle g_ShaderHandle = BGFX_INVALID_HANDLE;
-static bgfx::UniformHandle g_AttribLocationTex = BGFX_INVALID_HANDLE;
-static bgfx::VertexLayout g_VertexLayout;
-
-bool ImGui_Implbgfx_UpdateTexture(ImTextureData* tex);
-
-void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
+struct RendererUserData
 {
+    uint8_t view = 0;
+    uint8_t viewportViews = 1;
+    bgfx::ProgramHandle shaderModule = BGFX_INVALID_HANDLE;
+    bgfx::UniformHandle textureAttributeLocation = BGFX_INVALID_HANDLE;
+    bgfx::VertexLayout vertexLayout;
+
+    int msaaSamples = 1;
+    bool bUsingVSync = true;
+};
+
+bool ImGui_Implbgfx_UpdateTexture(ImTextureData* tex) noexcept;
+
+void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) noexcept
+{
+    const auto* backendData = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+
     const int fb_width  = static_cast<int>(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
     const int fb_height = static_cast<int>(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
@@ -51,8 +58,8 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
     float ortho[16];
     bx::mtxOrtho(ortho, L, R, B, T, 0.0f, 1000.0f, 0.0f, caps->homogeneousDepth);
 
-    bgfx::setViewTransform(g_View, nullptr, ortho);
-    bgfx::setViewRect(g_View, 0, 0, static_cast<uint16_t>(fb_width), static_cast<uint16_t>(fb_height));
+    bgfx::setViewTransform(backendData->view, nullptr, ortho);
+    bgfx::setViewRect(backendData->view, 0, 0, static_cast<uint16_t>(fb_width), static_cast<uint16_t>(fb_height));
 
     constexpr uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA,BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
@@ -69,10 +76,10 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
         // Allocate transient buffers (skip list if not enough space)
         bgfx::TransientVertexBuffer tvb;
         bgfx::TransientIndexBuffer  tib;
-        if ((vtx_count != bgfx::getAvailTransientVertexBuffer(vtx_count, g_VertexLayout)) || (idx_count != bgfx::getAvailTransientIndexBuffer(idx_count)))
+        if ((vtx_count != bgfx::getAvailTransientVertexBuffer(vtx_count, backendData->vertexLayout)) || (idx_count != bgfx::getAvailTransientIndexBuffer(idx_count)))
             break;
 
-        bgfx::allocTransientVertexBuffer(&tvb, vtx_count, g_VertexLayout);
+        bgfx::allocTransientVertexBuffer(&tvb, vtx_count, backendData->vertexLayout);
         bgfx::allocTransientIndexBuffer(&tib, idx_count);
 
         // Copy ImGui vertices / indices verbatim
@@ -113,18 +120,18 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data)
             bgfx::setState(state);
 
             const bgfx::TextureHandle th = { static_cast<uint16_t>((static_cast<intptr_t>(pcmd->TexRef.GetTexID()) & 0xffff)) };
-            bgfx::setTexture(0, g_AttribLocationTex, th);
+            bgfx::setTexture(0, backendData->textureAttributeLocation, th);
 
             bgfx::setVertexBuffer(0, &tvb, pcmd->VtxOffset, vtx_count);
             bgfx::setIndexBuffer(&tib, pcmd->IdxOffset, pcmd->ElemCount);
-            bgfx::submit(g_View, g_ShaderHandle);
+            bgfx::submit(backendData->view, backendData->shaderModule);
         }
     }
     if (draw_data->CmdListsCount == 0)
-        bgfx::touch(g_View);
+        bgfx::touch(backendData->view);
 }
 
-static void uploadRect(ImTextureData* texture, const int x, const int y, const int w, const int h)
+static void uploadRect(ImTextureData* texture, const int x, const int y, const int w, const int h) noexcept
 {
     if (w <= 0 || h <= 0)
         return;
@@ -145,7 +152,7 @@ static void uploadRect(ImTextureData* texture, const int x, const int y, const i
     );
 }
 
-bool ImGui_Implbgfx_UpdateTexture(ImTextureData* tex)
+bool ImGui_Implbgfx_UpdateTexture(ImTextureData* tex) noexcept
 {
     if (tex->Status == ImTextureStatus_WantCreate)
     {
@@ -219,7 +226,9 @@ struct ImGuiBGFXViewportData
 static void ImGui_Implbgfx_CreateWindow(ImGuiViewport* viewport) noexcept
 {
     auto* vd = IM_NEW(ImGuiBGFXViewportData)();
-    vd->viewId = g_Views++;
+    auto* userData = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+    vd->viewId = userData->viewportViews++;
+
     vd->fb  = bgfx::createFrameBuffer(
         viewport->PlatformHandleRaw,
         static_cast<uint16_t>(viewport->Size.x * viewport->DrawData->FramebufferScale.x),
@@ -255,10 +264,12 @@ static void ImGui_Implbgfx_RenderWindow(ImGuiViewport* viewport, void* renderArg
     bgfx::setViewRect(viewId, 0, 0, w, h);
     bgfx::touch(viewId);
 
-    const bgfx::ViewId prev = g_View;
-    g_View = viewId;
+    auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+
+    const bgfx::ViewId prev = data->view;
+    data->view = viewId;
     ImGui_Implbgfx_RenderDrawLists(viewport->DrawData);
-    g_View = prev;
+    data->view = prev;
 }
 
 static void ImGui_Implbgfx_SwapBuffers(ImGuiViewport* viewport, void* renderArg) noexcept
@@ -274,15 +285,19 @@ static void ImGui_Implbgfx_SetWindowSize(ImGuiViewport* viewport, const ImVec2 s
         if (bgfx::isValid(vd->fb))
             bgfx::destroy(vd->fb);
 
+        auto* userData = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+        vd->viewId = userData->viewportViews++;
+
         vd->fb = bgfx::createFrameBuffer(
             viewport->PlatformHandleRaw,
             static_cast<uint16_t>(size.x * viewport->DrawData->FramebufferScale.x),
             static_cast<uint16_t>(size.y * viewport->DrawData->FramebufferScale.y),
             bgfx::TextureFormat::RGBA8
         );
+        viewport->RendererUserData = vd;
     }
     else
-        bgfx::reset(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y), BGFX_RESET_VSYNC);
+        bgfx::reset(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y), ImGui_Implbgfx_GetResetFlags());
 }
 
 static void ImGui_Implbgfx_InitMultiViewportSupport() noexcept
@@ -295,28 +310,30 @@ static void ImGui_Implbgfx_InitMultiViewportSupport() noexcept
     platform_io.Renderer_SwapBuffers = ImGui_Implbgfx_SwapBuffers;
 }
 
-bool ImGui_Implbgfx_CreateDeviceObjects()
+bool ImGui_Implbgfx_CreateDeviceObjects() noexcept
 {
     const bgfx::RendererType::Enum type = bgfx::getRendererType();
-    g_ShaderHandle = bgfx::createProgram(
+    auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+
+    data->shaderModule = bgfx::createProgram(
         bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_ocornut_imgui"),
         bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_ocornut_imgui"),
         true
     );
 
-    g_VertexLayout
+    data->vertexLayout
         .begin()
             .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
             .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
         .end();
 
-    g_AttribLocationTex = bgfx::createUniform("g_AttribLocationTex", bgfx::UniformType::Sampler);
+    data->textureAttributeLocation = bgfx::createUniform("g_AttribLocationTex", bgfx::UniformType::Sampler);
 
     return true;
 }
 
-void ImGui_Implbgfx_InvalidateDeviceObjects()
+void ImGui_Implbgfx_InvalidateDeviceObjects() noexcept
 {
     for (const auto& a : ImGui::GetPlatformIO().Textures)
     {
@@ -324,28 +341,37 @@ void ImGui_Implbgfx_InvalidateDeviceObjects()
         if (bgfx::isValid(handle))
             bgfx::destroy(handle);
     }
-    bgfx::destroy(g_AttribLocationTex);
-    bgfx::destroy(g_ShaderHandle);
+
+    const auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+    bgfx::destroy(data->textureAttributeLocation);
+    bgfx::destroy(data->shaderModule);
 }
 
-void ImGui_Implbgfx_Init(const int view)
+void ImGui_Implbgfx_Init(const int view, const int msaaSamples, const bool bUsingVSync) noexcept
 {
-    g_View = static_cast<uint8_t>(view & 0xff);
-    g_Views = static_cast<uint8_t>(view & 0xff) + 1;
+    static RendererUserData data
+    {
+        .view = static_cast<uint8_t>(view & 0xff),
+        .viewportViews = static_cast<uint8_t>(static_cast<uint8_t>(view & 0xff) + 1),
+        .msaaSamples = msaaSamples,
+        .bUsingVSync = bUsingVSync
+    };
 
     auto& io = ImGui::GetIO();
     io.BackendRendererName = "imgui_impl_bgfx";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
     io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
+    io.BackendRendererUserData = &data;
 }
 
-void ImGui_Implbgfx_Shutdown()
+void ImGui_Implbgfx_Shutdown() noexcept
 {
     ImGui_Implbgfx_InvalidateDeviceObjects();
+    ImGui::GetIO().BackendRendererUserData = nullptr;
 }
 
-void ImGui_Implbgfx_NewFrame()
+void ImGui_Implbgfx_NewFrame() noexcept
 {
     static bool bFirst = true;
     if (bFirst)
@@ -354,4 +380,23 @@ void ImGui_Implbgfx_NewFrame()
         ImGui_Implbgfx_InitMultiViewportSupport();
         bFirst = false;
     }
+}
+
+int ImGui_Implbgfx_GetResetFlags() noexcept
+{
+    uint32_t flags = 0;
+    const auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+
+    if (data->bUsingVSync)
+        flags = BGFX_RESET_VSYNC;
+
+    if (data->msaaSamples >= 16)
+        flags |= BGFX_RESET_MSAA_X16;
+    else if (data->msaaSamples >= 8)
+        flags |= BGFX_RESET_MSAA_X8;
+    else if (data->msaaSamples >= 4)
+        flags |= BGFX_RESET_MSAA_X4;
+    else if (data->msaaSamples >= 2)
+        flags |= BGFX_RESET_MSAA_X2;
+    return flags;
 }

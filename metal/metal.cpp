@@ -48,4 +48,9 @@ void UImGuiRendererExamples::MetalRenderer::ImGuiRenderData() noexcept
 void UImGuiRendererExamples::MetalRenderer::waitOnGPU() noexcept
 {
 }
+
+void* UImGuiRendererExamples::MetalRenderer::getDevice() noexcept
+{
+    return nullptr;
+}
 #endif

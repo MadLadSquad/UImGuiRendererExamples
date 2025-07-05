@@ -28,6 +28,9 @@ namespace UImGuiRendererExamples
 
         virtual ~MetalRenderer() noexcept = default;
     private:
+        friend class MetalTexture;
+        void* getDevice() noexcept;
+
         void* data = nullptr;
         void* pool = nullptr;
     };

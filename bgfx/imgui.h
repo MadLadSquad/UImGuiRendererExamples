@@ -11,11 +11,13 @@
 // https://github.com/ocornut/imgui
 
 #pragma once
-void ImGui_Implbgfx_Init(int view);
-void ImGui_Implbgfx_Shutdown();
-void ImGui_Implbgfx_NewFrame();
-void ImGui_Implbgfx_RenderDrawLists(struct ImDrawData* draw_data);
+void ImGui_Implbgfx_Init(int view, int msaaSamples, bool bUsingVSync) noexcept;
+void ImGui_Implbgfx_Shutdown() noexcept;
+void ImGui_Implbgfx_NewFrame() noexcept;
+void ImGui_Implbgfx_RenderDrawLists(struct ImDrawData* draw_data) noexcept;
+
+int ImGui_Implbgfx_GetResetFlags() noexcept;
 
 // Use if you want to reset your rendering device without losing ImGui state.
-void ImGui_Implbgfx_InvalidateDeviceObjects();
-bool ImGui_Implbgfx_CreateDeviceObjects();
+void ImGui_Implbgfx_InvalidateDeviceObjects() noexcept;
+bool ImGui_Implbgfx_CreateDeviceObjects() noexcept;

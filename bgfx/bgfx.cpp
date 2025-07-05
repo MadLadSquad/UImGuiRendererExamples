@@ -70,7 +70,7 @@ void UImGuiRendererExamples::BGFXRenderer::setupPostWindowCreation() noexcept
     init.platformData.type = getNativeWindowHandleType();
     init.resolution.width  = CAST(int, windowSize.x);
     init.resolution.height = CAST(int, windowSize.y);
-    init.resolution.reset  = BGFX_RESET_VSYNC;
+    init.resolution.reset  = 0;
 
     bgfx::init(init);
 
@@ -82,7 +82,7 @@ void UImGuiRendererExamples::BGFXRenderer::init(UImGui::RendererInternalMetadata
 {
     UImGui::Window::pushWindowResizeCallback([](const int w, const int h) -> void
     {
-        bgfx::reset(CAST(uint32_t, w), CAST(uint32_t, h), BGFX_RESET_VSYNC);
+        bgfx::reset(CAST(uint32_t, w), CAST(uint32_t, h), ImGui_Implbgfx_GetResetFlags());
         bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
     });
 }
@@ -120,7 +120,8 @@ void UImGuiRendererExamples::BGFXRenderer::ImGuiInit() noexcept
 #ifdef __EMSCRIPTEN__
     ImGui_ImplGlfw_InstallEmscriptenCallbacks(UImGui::Window::getInternal(), "canvas");
 #endif
-    ImGui_Implbgfx_Init(0);
+    const auto rendererData = UImGui::Renderer::data();
+    ImGui_Implbgfx_Init(0, rendererData.msaaSamples, rendererData.bUsingVSync);
 }
 
 void UImGuiRendererExamples::BGFXRenderer::ImGuiRenderData() noexcept
