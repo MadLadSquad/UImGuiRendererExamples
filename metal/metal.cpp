@@ -1,5 +1,5 @@
 #include "metal.hpp"
-#ifdef __EMSCRIPTEN__
+#ifndef __APPLE__
 void UImGuiRendererExamples::MetalRenderer::parseCustomConfig(YAML::Node& config) noexcept
 {
 

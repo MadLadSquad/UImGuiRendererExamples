@@ -61,8 +61,6 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) noexcept
     bgfx::setViewTransform(backendData->view, nullptr, ortho);
     bgfx::setViewRect(backendData->view, 0, 0, static_cast<uint16_t>(fb_width), static_cast<uint16_t>(fb_height));
 
-    constexpr uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA,BGFX_STATE_BLEND_INV_SRC_ALPHA);
-
     const ImVec2 clip_off   = draw_data->DisplayPos;
     const ImVec2 clip_scale = draw_data->FramebufferScale;
 
@@ -115,11 +113,12 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) noexcept
                 static_cast<uint16_t>(bx::min(clip_max.x, 65535.0f) - sc_x),
                 static_cast<uint16_t>(bx::min(clip_max.y, 65535.0f) - sc_y)
             );
+            const bgfx::TextureHandle th = { static_cast<uint16_t>((static_cast<intptr_t>(pcmd->TexRef.GetTexID())/* & 0xffff*/)) };
+            constexpr uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
             // Bind state & resources and draw
             bgfx::setState(state);
 
-            const bgfx::TextureHandle th = { static_cast<uint16_t>((static_cast<intptr_t>(pcmd->TexRef.GetTexID()) & 0xffff)) };
             bgfx::setTexture(0, backendData->textureAttributeLocation, th);
 
             bgfx::setVertexBuffer(0, &tvb, pcmd->VtxOffset, vtx_count);
@@ -250,7 +249,7 @@ static void ImGui_Implbgfx_DestroyWindow(ImGuiViewport* viewport) noexcept
     viewport->RendererUserData = nullptr;
 }
 
-static void ImGui_Implbgfx_RenderWindow(ImGuiViewport* viewport, void* renderArg) noexcept
+static void ImGui_Implbgfx_RenderWindow(ImGuiViewport* viewport, void*) noexcept
 {
     const auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData);
 
@@ -272,11 +271,7 @@ static void ImGui_Implbgfx_RenderWindow(ImGuiViewport* viewport, void* renderArg
     data->view = prev;
 }
 
-static void ImGui_Implbgfx_SwapBuffers(ImGuiViewport* viewport, void* renderArg) noexcept
-{
-    (void)viewport;
-    (void)renderArg;
-}
+static void ImGui_Implbgfx_SwapBuffers(ImGuiViewport*, void*) noexcept{}
 
 static void ImGui_Implbgfx_SetWindowSize(ImGuiViewport* viewport, const ImVec2 size) noexcept
 {
