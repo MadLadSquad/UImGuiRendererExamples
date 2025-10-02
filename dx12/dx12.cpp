@@ -1,14 +1,10 @@
 #include "dx12.hpp"
 #ifdef _WIN32
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
 #include "imgui_impl_dx12.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <tchar.h>
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
 
 #define _DEBUG
 #ifdef _DEBUG
@@ -30,11 +26,9 @@ void UImGuiRendererExamples::DX12Renderer::setupWindowIntegration() noexcept
     UImGui::RendererUtils::setupManually();
 }
 
-#define GET_HANDLE glfwGetWin32Window(UImGui::Window::getInternal())
-
 void UImGuiRendererExamples::DX12Renderer::setupPostWindowCreation() noexcept
 {
-    if (!CreateDeviceD3D(GET_HANDLE))
+    if (!CreateDeviceD3D(UImGui::Window::Platform::getNativeWindowHandle()))
         CleanupDeviceD3D();
 }
 
@@ -132,7 +126,7 @@ void UImGuiRendererExamples::DX12Renderer::ImGuiShutdown() noexcept
 
 void UImGuiRendererExamples::DX12Renderer::ImGuiInit() noexcept
 {
-    ImGui_ImplGlfw_InitForOther(UImGui::Window::getInternal(), true);
+    UImGui::RendererUtils::ImGuiInitOther();
 
     ImGui_ImplDX12_InitInfo init_info = {};
     init_info.Device = deviceHandle;
