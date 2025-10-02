@@ -1,16 +1,11 @@
 #include "metal.hpp"
 #ifndef __EMSCRIPTEN__
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
 #include <imgui_impl_metal.h>
-
-#define GLFW_INCLUDE_NONE
-#define GLFW_EXPOSE_NATIVE_COCOA
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
+#import <AppKit/AppKit.h>
 
 extern "C" void* objc_autoreleasePoolPush(void);
 extern "C" void objc_autoreleasePoolPop(void* token);
@@ -92,8 +87,11 @@ static void rebuildMSAA(MetalRendererData* data, const int width, const int heig
 void UImGuiRendererExamples::MetalRenderer::renderStart(double deltaTime) noexcept
 {
     pool = objc_autoreleasePoolPush();
-    int width, height;
-    glfwGetFramebufferSize(UImGui::Window::getInternal(), &width, &height);
+
+    auto size = UImGui::Window::getWindowSize();
+    int width = CAST(int, size.x);
+    int height = CAST(int, size.y);
+
     DATA->layer.drawableSize = CGSizeMake(width, height);
     DATA->layer.displaySyncEnabled = UImGui::Renderer::data().bUsingVSync;
     DATA->drawable = [DATA->layer nextDrawable];
@@ -156,10 +154,10 @@ void UImGuiRendererExamples::MetalRenderer::ImGuiShutdown() noexcept
 
 void UImGuiRendererExamples::MetalRenderer::ImGuiInit() noexcept
 {
-    ImGui_ImplGlfw_InitForOther(UImGui::Window::getInternal(), true);
+    UImGui::RendererUtils::ImGuiInitOther();
     ImGui_ImplMetal_Init(DATA->device);
 
-    NSWindow* nswin = glfwGetCocoaWindow(UImGui::Window::getInternal());
+    NSWindow* nswin = static_cast<NSWindow*>(UImGui::Window::Platform::getNativeWindowHandle());
     DATA->layer = [CAMetalLayer layer];
     DATA->layer.device = DATA->device;
     DATA->layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
