@@ -28,7 +28,7 @@ void UImGuiRendererExamples::DX12Renderer::setupWindowIntegration() noexcept
 
 void UImGuiRendererExamples::DX12Renderer::setupPostWindowCreation() noexcept
 {
-    if (!CreateDeviceD3D(UImGui::Window::Platform::getNativeWindowHandle()))
+    if (!CreateDeviceD3D(static_cast<HWND>(UImGui::Window::Platform::getNativeWindowHandle())))
         CleanupDeviceD3D();
 }
 
