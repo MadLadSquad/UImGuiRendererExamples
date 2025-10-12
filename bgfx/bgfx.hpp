@@ -9,26 +9,26 @@ namespace UImGuiRendererExamples
     {
     public:
         BGFXRenderer() noexcept;
-        virtual void parseCustomConfig(YAML::Node& config) noexcept;
+        void parseCustomConfig(YAML::Node& config) noexcept override;
 
-        virtual void setupWindowIntegration() noexcept;
-        virtual void setupPostWindowCreation() noexcept;
+        void setupWindowIntegration() noexcept override;
+        void setupPostWindowCreation() noexcept override;
 
-        virtual void init(UImGui::RendererInternalMetadata& metadata) noexcept;
-        virtual void renderStart(double deltaTime) noexcept;
-        virtual void renderEnd(double deltaTime) noexcept;
-        virtual void destroy() noexcept;
+        void init(UImGui::RendererInternalMetadata& metadata) noexcept override;
+        void renderStart(double deltaTime) noexcept override;
+        void renderEnd(double deltaTime) noexcept override;
+        void destroy() noexcept override;
 
-        virtual void ImGuiNewFrame() noexcept;
-        virtual void ImGuiShutdown() noexcept;
-        virtual void ImGuiInit() noexcept;
-        virtual void ImGuiRenderData() noexcept;
+        void ImGuiNewFrame() noexcept override;
+        void ImGuiShutdown() noexcept override;
+        void ImGuiInit() noexcept override;
+        void ImGuiRenderData() noexcept override;
 
         // Only called on Vulkan, because there we need to wait for resources to be used before freeing resources,
         // like textures
-        virtual void waitOnGPU() noexcept;
+        void waitOnGPU() noexcept override;
 
-        virtual ~BGFXRenderer() noexcept = default;
+        ~BGFXRenderer() noexcept override = default;
     private:
     };
 }
