@@ -11,7 +11,7 @@ namespace UImGuiRendererExamples
     class DX12Renderer final : public UImGui::GenericRenderer
     {
     public:
-        DX12Renderer() noexcept = default;
+        DX12Renderer() noexcept;
         virtual void parseCustomConfig(YAML::Node& config) noexcept;
 
         virtual void setupWindowIntegration() noexcept;
@@ -31,7 +31,7 @@ namespace UImGuiRendererExamples
         // like textures
         virtual void waitOnGPU() noexcept;
 
-        virtual ~DX12Renderer() noexcept = default;
+        ~DX12Renderer() noexcept override = default;
     private:
 #ifdef _WIN32
         friend class DX12Texture;

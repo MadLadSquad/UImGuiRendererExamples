@@ -6,7 +6,7 @@ namespace UImGuiRendererExamples
     class MetalRenderer final : public UImGui::GenericRenderer
     {
     public:
-        MetalRenderer() noexcept = default;
+        MetalRenderer() noexcept;
         virtual void parseCustomConfig(YAML::Node& config) noexcept;
 
         virtual void setupWindowIntegration() noexcept;

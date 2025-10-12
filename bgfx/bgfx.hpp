@@ -8,7 +8,7 @@ namespace UImGuiRendererExamples
     class BGFXRenderer final : public UImGui::GenericRenderer
     {
     public:
-        BGFXRenderer() noexcept = default;
+        BGFXRenderer() noexcept;
         virtual void parseCustomConfig(YAML::Node& config) noexcept;
 
         virtual void setupWindowIntegration() noexcept;

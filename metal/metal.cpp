@@ -1,4 +1,10 @@
 #include "metal.hpp"
+
+UImGuiRendererExamples::MetalRenderer::MetalRenderer() noexcept
+{
+    type = UIMGUI_RENDERER_API_TYPE_HINT_METAL;
+}
+
 #ifndef __APPLE__
 void UImGuiRendererExamples::MetalRenderer::parseCustomConfig(YAML::Node& config) noexcept
 {

@@ -2,6 +2,11 @@
 #include "./imgui.h"
 #include "bgfx/bgfx.h"
 
+UImGuiRendererExamples::BGFXRenderer::BGFXRenderer() noexcept
+{
+    type = UIMGUI_RENDERER_API_TYPE_HINT_OTHER;
+}
+
 void UImGuiRendererExamples::BGFXRenderer::parseCustomConfig(YAML::Node& config) noexcept
 {
 

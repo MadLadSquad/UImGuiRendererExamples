@@ -452,18 +452,21 @@ void UImGuiRendererExamples::DX12Renderer::DX12DescriptorHeapAllocator::Free(D3D
 }
 
 #else
-void parseCustomConfig(YAML::Node& config) noexcept {}
-void setupWindowIntegration() noexcept {}
-void setupPostWindowCreation() noexcept {}
-void init(UImGui::RendererInternalMetadata& metadata) noexcept {}
-void renderStart(double deltaTime) noexcept {}
-void renderEnd(double deltaTime) noexcept {}
-void destroy() noexcept {}
-void ImGuiNewFrame() noexcept {}
-void ImGuiShutdown() noexcept {}
-void ImGuiInit() noexcept {}
-void ImGuiRenderData() noexcept {}
-void waitOnGPU() noexcept{}
+void UImGuiRendererExamples::DX12Renderer::parseCustomConfig(YAML::Node& config) noexcept {}
+void UImGuiRendererExamples::DX12Renderer::setupWindowIntegration() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::setupPostWindowCreation() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::init(UImGui::RendererInternalMetadata& metadata) noexcept {}
+void UImGuiRendererExamples::DX12Renderer::renderStart(double deltaTime) noexcept {}
+void UImGuiRendererExamples::DX12Renderer::renderEnd(double deltaTime) noexcept {}
+void UImGuiRendererExamples::DX12Renderer::destroy() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::ImGuiNewFrame() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::ImGuiShutdown() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::ImGuiInit() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::ImGuiRenderData() noexcept {}
+void UImGuiRendererExamples::DX12Renderer::waitOnGPU() noexcept{}
 #endif
 
-
+UImGuiRendererExamples::DX12Renderer::DX12Renderer() noexcept
+{
+    type = UIMGUI_RENDERER_API_TYPE_HINT_D3D;
+}
