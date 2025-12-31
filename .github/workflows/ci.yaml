@@ -155,8 +155,8 @@ jobs:
       - name: Install framework
         shell: bash
         run: |
-          git clone https://github.com/MadLadSquad/UntitledImGuiFramework --recursive
-          cd UntitledImGuiFramework || exit
+          git clone https://github.com/MadLadSquad/UntitledImGuiFramework U --recursive
+          cd U || exit
           ./install.sh ci
           cd Projects || exit
           git clone https://github.com/MadLadSquad/UImGuiDemo.git --recursive
@@ -199,7 +199,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cd UntitledImGuiFramework/Projects/UImGuiDemo/ || exit
+          cd U/Projects/UImGuiDemo/ || exit
           mkdir build
           cd build || exit
           cmake .. -DCMAKE_BUILD_TYPE=RELEASE
