@@ -16,10 +16,8 @@
 	#pragma comment(lib, "dxguid.lib")
 #endif
 
-void UImGuiRendererExamples::DX12Renderer::parseCustomConfig(YAML::Node& config) noexcept
-{
-
-}
+void UImGuiRendererExamples::DX12Renderer::parseCustomConfig(const ryml::ConstNodeRef&) noexcept{}
+void UImGuiRendererExamples::DX12Renderer::saveCustomConfig(ryml::NodeRef& config) noexcept{}
 
 void UImGuiRendererExamples::DX12Renderer::setupWindowIntegration() noexcept
 {
@@ -452,7 +450,8 @@ void UImGuiRendererExamples::DX12Renderer::DX12DescriptorHeapAllocator::Free(D3D
 }
 
 #else
-void UImGuiRendererExamples::DX12Renderer::parseCustomConfig(YAML::Node& config) noexcept {}
+void UImGuiRendererExamples::DX12Renderer::parseCustomConfig(const ryml::ConstNodeRef&) noexcept{}
+void UImGuiRendererExamples::DX12Renderer::saveCustomConfig(ryml::NodeRef& config) noexcept{}
 void UImGuiRendererExamples::DX12Renderer::setupWindowIntegration() noexcept {}
 void UImGuiRendererExamples::DX12Renderer::setupPostWindowCreation() noexcept {}
 void UImGuiRendererExamples::DX12Renderer::init(UImGui::RendererInternalMetadata& metadata) noexcept {}

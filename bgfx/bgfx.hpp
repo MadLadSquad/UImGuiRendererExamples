@@ -9,7 +9,9 @@ namespace UImGuiRendererExamples
     {
     public:
         BGFXRenderer() noexcept;
-        void parseCustomConfig(YAML::Node& config) noexcept override;
+
+        void parseCustomConfig(const ryml::ConstNodeRef&) noexcept override;
+        void saveCustomConfig(ryml::NodeRef& config) noexcept override;
 
         void setupWindowIntegration() noexcept override;
         void setupPostWindowCreation() noexcept override;

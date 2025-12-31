@@ -7,10 +7,8 @@ UImGuiRendererExamples::BGFXRenderer::BGFXRenderer() noexcept
     type = UIMGUI_RENDERER_API_TYPE_HINT_OTHER;
 }
 
-void UImGuiRendererExamples::BGFXRenderer::parseCustomConfig(YAML::Node& config) noexcept
-{
-
-}
+void UImGuiRendererExamples::BGFXRenderer::parseCustomConfig(const ryml::ConstNodeRef&) noexcept{}
+void UImGuiRendererExamples::BGFXRenderer::saveCustomConfig(ryml::NodeRef& config) noexcept{}
 
 void UImGuiRendererExamples::BGFXRenderer::setupWindowIntegration() noexcept
 {

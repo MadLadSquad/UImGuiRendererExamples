@@ -6,10 +6,8 @@ UImGuiRendererExamples::MetalRenderer::MetalRenderer() noexcept
 }
 
 #ifndef __APPLE__
-void UImGuiRendererExamples::MetalRenderer::parseCustomConfig(YAML::Node& config) noexcept
-{
-
-}
+void UImGuiRendererExamples::MetalRenderer::parseCustomConfig(const ryml::ConstNodeRef&) noexcept{}
+void UImGuiRendererExamples::MetalRenderer::saveCustomConfig(ryml::NodeRef& config) noexcept{}
 
 void UImGuiRendererExamples::MetalRenderer::setupWindowIntegration() noexcept
 {
