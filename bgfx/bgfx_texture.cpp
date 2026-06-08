@@ -16,11 +16,12 @@ void UImGuiRendererExamples::BGFXTexture::load(UImGui::TextureData& dt, void* da
         false,
         1,
         bgfx::TextureFormat::RGBA8,
-        BGFX_TEXTURE_NONE            |
-        BGFX_SAMPLER_U_CLAMP         |
-        BGFX_SAMPLER_V_CLAMP         |
-        BGFX_SAMPLER_MIN_ANISOTROPIC |
-        BGFX_SAMPLER_MAG_ANISOTROPIC,
+        BGFX_TEXTURE_NONE |
+        BGFX_SAMPLER_U_CLAMP |
+        BGFX_SAMPLER_V_CLAMP |
+        (dt.bFiltered
+            ? BGFX_SAMPLER_MIN_ANISOTROPIC | BGFX_SAMPLER_MAG_ANISOTROPIC
+            : BGFX_SAMPLER_MIN_POINT       | BGFX_SAMPLER_MAG_POINT),
         mem
     ).idx;
     endLoad(dt, data, bFreeImageData, freeFunc);
