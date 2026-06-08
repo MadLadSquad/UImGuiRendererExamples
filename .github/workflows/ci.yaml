@@ -32,7 +32,7 @@ jobs:
           cd ../../Projects/UImGuiDemo || exit
           
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "" 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          sed -i "" 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i "" 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i "" 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i "" 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
@@ -99,7 +99,7 @@ jobs:
           cd ../../Projects/UImGuiDemo || exit
 
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
@@ -165,7 +165,7 @@ jobs:
           cd ../../Projects/UImGuiDemo || exit
 
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
@@ -234,7 +234,7 @@ jobs:
           cd ../../Projects/UImGuiDemo || exit
           
           git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
           sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
