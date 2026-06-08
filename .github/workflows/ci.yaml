@@ -242,6 +242,21 @@ jobs:
           echo "\
           function(custom_setup_step)
             add_subdirectory(bgfx.cmake/)
+
+            if(EMSCRIPTEN)
+              # bx.cmake adds -msse4.2 as PUBLIC, which propagates to bimg_encode via
+              # its public bx link. That defines __SSE4_1__, causing ProcessRGB.cpp to
+              # include <x86intrin.h>, which pulls in ia32intrin.h with non-WASM builtins
+              # (RDPMC, WBINVD, EFLAGS, etc.) that have no WebAssembly equivalent.
+              # Strip the flag from bx's propagated interface; bx itself retains it in
+              # its own COMPILE_OPTIONS for internal SIMD math.
+              get_target_property(_bx_iface_opts bx INTERFACE_COMPILE_OPTIONS)
+              if(_bx_iface_opts)
+                list(REMOVE_ITEM _bx_iface_opts "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-msse4.2>")
+                set_target_properties(bx PROPERTIES INTERFACE_COMPILE_OPTIONS "${_bx_iface_opts}")
+              endif()
+              target_compile_options(bx PUBLIC -msimd128)
+            endif()
           endfunction()
 
           function(custom_compile_step)
