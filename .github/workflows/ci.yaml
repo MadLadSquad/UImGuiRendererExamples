@@ -203,7 +203,7 @@ jobs:
           mkdir build
           cd build || exit
           cmake .. -DCMAKE_BUILD_TYPE=RELEASE
-          MSBuild.exe UImGuiDemo.sln -property:Configuration=Release -property:Platform=x64 -property:maxCpuCount="$(grep -c processor /proc/cpuinfo 2> /dev/null)" || exit
+          MSBuild.exe UImGuiDemo.sln* -property:Configuration=Release -property:Platform=x64 -property:maxCpuCount="$(grep -c processor /proc/cpuinfo 2> /dev/null)" || exit
   WASM:
     runs-on: ubuntu-latest
     steps:
