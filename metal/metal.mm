@@ -21,6 +21,7 @@ struct MetalRendererData
     id<MTLRenderCommandEncoder> renderEncoder;
     uint32_t samples;
     id<MTLTexture> msaaColor;
+    NSWindow* nswin;
 };
 
 #define DATA CAST(MetalRendererData*, data)
@@ -86,10 +87,16 @@ void UImGuiRendererExamples::MetalRenderer::renderStart(double deltaTime) noexce
 {
     pool = objc_autoreleasePoolPush();
 
-    auto size = UImGui::Window::getWindowSize();
-    int width = CAST(int, size.x);
-    int height = CAST(int, size.y);
+    // Drive scale + drawableSize directly from the NSWindow so we don't depend on the host
+    // window backend's contentView being layer-backed in a way that propagates contentsScale
+    // (GLFW does this implicitly; SDL does not).
+    const CGFloat scale = DATA->nswin.backingScaleFactor;
+    const CGRect viewBounds = DATA->nswin.contentView.bounds;
+    const int width  = CAST(int, viewBounds.size.width  * scale);
+    const int height = CAST(int, viewBounds.size.height * scale);
 
+    DATA->layer.frame = viewBounds;
+    DATA->layer.contentsScale = scale;
     DATA->layer.drawableSize = CGSizeMake(width, height);
     DATA->layer.displaySyncEnabled = UImGui::Renderer::data().bUsingVSync;
     DATA->drawable = [DATA->layer nextDrawable];
@@ -156,10 +163,13 @@ void UImGuiRendererExamples::MetalRenderer::ImGuiInit() noexcept
     ImGui_ImplMetal_Init(DATA->device);
 
     NSWindow* nswin = static_cast<NSWindow*>(UImGui::Window::Platform::getNativeWindowHandle());
+    DATA->nswin = nswin;
     DATA->layer = [CAMetalLayer layer];
     DATA->layer.device = DATA->device;
     DATA->layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     DATA->layer.displaySyncEnabled = UImGui::Renderer::data().bUsingVSync;
+    DATA->layer.contentsScale = nswin.backingScaleFactor;
+    DATA->layer.frame = nswin.contentView.bounds;
     nswin.contentView.layer = DATA->layer;
     nswin.contentView.wantsLayer = YES;
 
