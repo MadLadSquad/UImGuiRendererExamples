@@ -11,12 +11,26 @@
 // https://github.com/ocornut/imgui
 
 #pragma once
+#include <cstdint>
+
 void ImGui_Implbgfx_Init(int view, int msaaSamples, bool bUsingVSync) noexcept;
 void ImGui_Implbgfx_Shutdown() noexcept;
 void ImGui_Implbgfx_NewFrame() noexcept;
 void ImGui_Implbgfx_RenderDrawLists(struct ImDrawData* draw_data) noexcept;
 
-int ImGui_Implbgfx_GetResetFlags() noexcept;
+// bgfx splits what used to be one flag word in two: BGFX_RESET_* are device and frame globals, while
+// BGFX_SWAP_CHAIN_* describe a single surface and live on bgfx::SwapChain::flags. Passing a per-surface
+// flag to bgfx::reset is not an error but is silently dropped, with only a BX_WARN to show for it, so the
+// two sets are built separately here and must be passed to the matching place.
+//
+// The Make* forms take their inputs explicitly because the renderer needs both flag words for bgfx::init,
+// which happens before the imgui backend exists; the no-argument forms read what ImGui_Implbgfx_Init was
+// given and are only valid once the backend is up.
+[[nodiscard]] uint32_t ImGui_Implbgfx_MakeResetFlags(bool bUsingVSync) noexcept;
+[[nodiscard]] uint32_t ImGui_Implbgfx_MakeSwapChainFlags(int msaaSamples) noexcept;
+
+[[nodiscard]] uint32_t ImGui_Implbgfx_GetResetFlags() noexcept;
+[[nodiscard]] uint32_t ImGui_Implbgfx_GetSwapChainFlags() noexcept;
 
 // Use if you want to reset your rendering device without losing ImGui state.
 void ImGui_Implbgfx_InvalidateDeviceObjects() noexcept;

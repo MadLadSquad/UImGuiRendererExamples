@@ -64,7 +64,7 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) noexcept
     const ImVec2 clip_off   = draw_data->DisplayPos;
     const ImVec2 clip_scale = draw_data->FramebufferScale;
 
-    for (int n = 0; n < draw_data->CmdListsCount; ++n)
+    for (int n = 0; n < draw_data->CmdLists.Size; ++n)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
 
@@ -126,7 +126,7 @@ void ImGui_Implbgfx_RenderDrawLists(ImDrawData* draw_data) noexcept
             bgfx::submit(backendData->view, backendData->shaderModule);
         }
     }
-    if (draw_data->CmdListsCount == 0)
+    if (draw_data->CmdLists.Size == 0)
         bgfx::touch(backendData->view);
 }
 
@@ -228,12 +228,16 @@ static void ImGui_Implbgfx_CreateWindow(ImGuiViewport* viewport) noexcept
     auto* userData = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
     vd->viewId = userData->viewportViews++;
 
-    vd->fb  = bgfx::createFrameBuffer(
-        viewport->PlatformHandleRaw,
-        static_cast<uint16_t>(viewport->Size.x * viewport->DrawData->FramebufferScale.x),
-        static_cast<uint16_t>(viewport->Size.y * viewport->DrawData->FramebufferScale.y),
-        bgfx::TextureFormat::RGBA8
-    );
+    // A window frame buffer is described by a full bgfx::SwapChain now instead of a handle/size/format
+    // argument list. ndt is deliberately left null: bgfx then reuses the display the main window was
+    // initialized with, which is what every secondary viewport wants.
+    bgfx::SwapChain swapChain{};
+    swapChain.nwh         = viewport->PlatformHandleRaw;
+    swapChain.width       = static_cast<uint32_t>(viewport->Size.x * viewport->DrawData->FramebufferScale.x);
+    swapChain.height      = static_cast<uint32_t>(viewport->Size.y * viewport->DrawData->FramebufferScale.y);
+    swapChain.formatColor = bgfx::TextureFormat::RGBA8;
+
+    vd->fb = bgfx::createFrameBuffer(swapChain);
 
     viewport->RendererUserData = vd;
 }
@@ -275,24 +279,33 @@ static void ImGui_Implbgfx_SwapBuffers(ImGuiViewport*, void*) noexcept{}
 
 static void ImGui_Implbgfx_SetWindowSize(ImGuiViewport* viewport, const ImVec2 size) noexcept
 {
-    if (auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData))
+    if (const auto* vd = static_cast<ImGuiBGFXViewportData*>(viewport->RendererUserData))
     {
-        if (bgfx::isValid(vd->fb))
-            bgfx::destroy(vd->fb);
+        if (!bgfx::isValid(vd->fb))
+            return;
 
-        auto* userData = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
-        vd->viewId = userData->viewportViews++;
+        // Resized in place. The old code destroyed the frame buffer and built a new one, which also handed
+        // out a fresh view id every single resize and ran the 255 available ones down; bgfx::updateSwapChain
+        // keeps the handle - and therefore the view id - valid, so neither is needed any more.
+        bgfx::SwapChain swapChain{};
+        swapChain.nwh    = viewport->PlatformHandleRaw;
+        swapChain.width  = static_cast<uint32_t>(size.x * viewport->DrawData->FramebufferScale.x);
+        swapChain.height = static_cast<uint32_t>(size.y * viewport->DrawData->FramebufferScale.y);
 
-        vd->fb = bgfx::createFrameBuffer(
-            viewport->PlatformHandleRaw,
-            static_cast<uint16_t>(size.x * viewport->DrawData->FramebufferScale.x),
-            static_cast<uint16_t>(size.y * viewport->DrawData->FramebufferScale.y),
-            bgfx::TextureFormat::RGBA8
-        );
-        viewport->RendererUserData = vd;
+        bgfx::updateSwapChain(vd->fb, swapChain);
     }
     else
-        bgfx::reset(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y), ImGui_Implbgfx_GetResetFlags());
+    {
+        // No viewport data means this is the main window, whose swap chain belongs to bgfx itself. Only
+        // the fields set here are applied - everything left at its default is inherited from bgfx::init,
+        // including nwh/ndt, which reset ignores for the main window in any case.
+        bgfx::SwapChain swapChain{};
+        swapChain.width  = static_cast<uint32_t>(size.x);
+        swapChain.height = static_cast<uint32_t>(size.y);
+        swapChain.flags  = ImGui_Implbgfx_GetSwapChainFlags();
+
+        bgfx::reset(ImGui_Implbgfx_GetResetFlags(), &swapChain);
+    }
 }
 
 static void ImGui_Implbgfx_InitMultiViewportSupport() noexcept
@@ -377,21 +390,32 @@ void ImGui_Implbgfx_NewFrame() noexcept
     }
 }
 
-int ImGui_Implbgfx_GetResetFlags() noexcept
+uint32_t ImGui_Implbgfx_MakeResetFlags(const bool bUsingVSync) noexcept
 {
-    uint32_t flags = 0;
+    return bUsingVSync ? BGFX_RESET_VSYNC : BGFX_RESET_NONE;
+}
+
+uint32_t ImGui_Implbgfx_MakeSwapChainFlags(const int msaaSamples) noexcept
+{
+    if (msaaSamples >= 16)
+        return BGFX_SWAP_CHAIN_MSAA_X16;
+    if (msaaSamples >= 8)
+        return BGFX_SWAP_CHAIN_MSAA_X8;
+    if (msaaSamples >= 4)
+        return BGFX_SWAP_CHAIN_MSAA_X4;
+    if (msaaSamples >= 2)
+        return BGFX_SWAP_CHAIN_MSAA_X2;
+    return BGFX_SWAP_CHAIN_NONE;
+}
+
+uint32_t ImGui_Implbgfx_GetResetFlags() noexcept
+{
     const auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+    return data != nullptr ? ImGui_Implbgfx_MakeResetFlags(data->bUsingVSync) : BGFX_RESET_NONE;
+}
 
-    if (data->bUsingVSync)
-        flags = BGFX_RESET_VSYNC;
-
-    if (data->msaaSamples >= 16)
-        flags |= BGFX_RESET_MSAA_X16;
-    else if (data->msaaSamples >= 8)
-        flags |= BGFX_RESET_MSAA_X8;
-    else if (data->msaaSamples >= 4)
-        flags |= BGFX_RESET_MSAA_X4;
-    else if (data->msaaSamples >= 2)
-        flags |= BGFX_RESET_MSAA_X2;
-    return flags;
+uint32_t ImGui_Implbgfx_GetSwapChainFlags() noexcept
+{
+    const auto* data = static_cast<RendererUserData*>(ImGui::GetIO().BackendRendererUserData);
+    return data != nullptr ? ImGui_Implbgfx_MakeSwapChainFlags(data->msaaSamples) : BGFX_SWAP_CHAIN_NONE;
 }

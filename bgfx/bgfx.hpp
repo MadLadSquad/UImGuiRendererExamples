@@ -1,7 +1,5 @@
 #pragma once
 #include <Framework/Framework.hpp>
-#pragma once
-#include <Framework/Framework.hpp>
 
 namespace UImGuiRendererExamples
 {

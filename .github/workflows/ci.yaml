@@ -31,15 +31,19 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           
-          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i "" 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i "" 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i "" 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i "" 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          # Deliberately unpinned so CI is what tells us bgfx has moved. bgfx makes breaking API changes
+          # with no deprecation period, so a red build here usually means the renderer needs porting
+          # rather than that anything is wrong with the workflow.
+          git clone https://github.com/bkaradzic/bgfx.cmake
+          git -C bgfx.cmake submodule update --init --recursive
           
           echo "\
           function(custom_setup_step)
-            add_subdirectory(bgfx.cmake/)
+            set(BGFX_CONFIG_MULTITHREADED OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_TOOLS          OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_EXAMPLES       OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_INSTALL              OFF CACHE BOOL \"\" FORCE)
+            add_subdirectory(bgfx.cmake/ EXCLUDE_FROM_ALL)
           endfunction()
 
           function(custom_compile_step)
@@ -98,15 +102,19 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
 
-          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          # Deliberately unpinned so CI is what tells us bgfx has moved. bgfx makes breaking API changes
+          # with no deprecation period, so a red build here usually means the renderer needs porting
+          # rather than that anything is wrong with the workflow.
+          git clone https://github.com/bkaradzic/bgfx.cmake
+          git -C bgfx.cmake submodule update --init --recursive
           
           echo "\
           function(custom_setup_step)
-            add_subdirectory(bgfx.cmake/)
+            set(BGFX_CONFIG_MULTITHREADED OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_TOOLS          OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_EXAMPLES       OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_INSTALL              OFF CACHE BOOL \"\" FORCE)
+            add_subdirectory(bgfx.cmake/ EXCLUDE_FROM_ALL)
           endfunction()
 
           function(custom_compile_step)
@@ -164,15 +172,19 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
 
-          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          # Deliberately unpinned so CI is what tells us bgfx has moved. bgfx makes breaking API changes
+          # with no deprecation period, so a red build here usually means the renderer needs porting
+          # rather than that anything is wrong with the workflow.
+          git clone https://github.com/bkaradzic/bgfx.cmake
+          git -C bgfx.cmake submodule update --init --recursive
 
           echo "\
           function(custom_setup_step)
-            add_subdirectory(bgfx.cmake/)
+            set(BGFX_CONFIG_MULTITHREADED OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_TOOLS          OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_EXAMPLES       OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_INSTALL              OFF CACHE BOOL \"\" FORCE)
+            add_subdirectory(bgfx.cmake/ EXCLUDE_FROM_ALL)
           endfunction()
 
           function(custom_compile_step)
@@ -203,7 +215,7 @@ jobs:
           mkdir build
           cd build || exit
           cmake .. -DCMAKE_BUILD_TYPE=RELEASE
-          MSBuild.exe UImGuiDemo.sln* -property:Configuration=Release -property:Platform=x64 -property:maxCpuCount="$(grep -c processor /proc/cpuinfo 2> /dev/null)" || exit
+          MSBuild.exe UImGuiDemo.sln* -property:Configuration=Release -property:Platform=x64 -property:maxCpuCount="$NUMBER_OF_PROCESSORS" || exit
   WASM:
     runs-on: ubuntu-latest
     steps:
@@ -233,15 +245,19 @@ jobs:
           ./UVKBuildTool --generate ../../Projects/UImGuiDemo/
           cd ../../Projects/UImGuiDemo || exit
           
-          git clone https://github.com/bkaradzic/bgfx.cmake --recursive
-          sed -i 's/option(BGFX_CONFIG_MULTITHREADED .*/option(BGFX_CONFIG_MULTITHREADED \"\" OFF \"NOT CMAKE_SYSTEM_NAME STREQUAL Emscripten\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_INSTALL .*/option(BGFX_INSTALL \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_EXAMPLES .*/option(BGFX_BUILD_EXAMPLES \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
-          sed -i 's/option(BGFX_BUILD_TOOLS .*/option(BGFX_BUILD_TOOLS \"\" OFF)/g' bgfx.cmake/CMakeLists.txt
+          # Deliberately unpinned so CI is what tells us bgfx has moved. bgfx makes breaking API changes
+          # with no deprecation period, so a red build here usually means the renderer needs porting
+          # rather than that anything is wrong with the workflow.
+          git clone https://github.com/bkaradzic/bgfx.cmake
+          git -C bgfx.cmake submodule update --init --recursive
           
           echo "\
           function(custom_setup_step)
-            add_subdirectory(bgfx.cmake/)
+            set(BGFX_CONFIG_MULTITHREADED OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_TOOLS          OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_BUILD_EXAMPLES       OFF CACHE BOOL \"\" FORCE)
+            set(BGFX_INSTALL              OFF CACHE BOOL \"\" FORCE)
+            add_subdirectory(bgfx.cmake/ EXCLUDE_FROM_ALL)
 
             if(EMSCRIPTEN)
               get_target_property(_bx_iface_opts bx INTERFACE_COMPILE_OPTIONS)
